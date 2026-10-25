@@ -17,7 +17,7 @@
     "type": "git",
     "url": "git+https://github.com/automan-bot/node-edge-tts.git"
   },
-  "homepage": "https://github.com/SchneeHertz/node-edge-tts",
+  "homepage": "https://github.com/automan-bot/node-edge-tts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
