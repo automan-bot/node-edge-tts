@@ -1,0 +1,89 @@
+name: Build and Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Tag pushes sync the tag version (vX.Y.Z -> X.Y.Z) into package.json
+      # and package-lock.json before building, so the published tarball
+      # always carries the tagged version.
+      - name: Sync version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} is not valid semver (expected vX.Y.Z)"
+            exit 1
+          fi
+          echo "Syncing package.json version to ${VERSION}"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          test -f dist/edge-tts.js
+          test -f dist/edge-tts.d.ts
+
+      - name: Publish to npm
+        if: env.NPM_TOKEN != ''
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
+
+      - name: Skip publish (no NPM_TOKEN)
+        if: env.NPM_TOKEN == ''
+        run: echo "::notice::NPM_TOKEN secret is not configured; build finished but npm publish was skipped."
+
+      # Write the tag version back to the default branch so package.json in the
+      # repository always matches the released version. Working on top of the
+      # branch tip (instead of the detached tag) keeps the push fast-forward.
+      - name: Sync version to repository
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          git fetch origin "$DEFAULT_BRANCH"
+          # Force checkout: the tag step already changed package.json in the
+          # working tree, and those changes are re-applied below.
+          git checkout -f -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "::notice::package.json is already at ${VERSION}; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: sync version to ${VERSION}"
+          git push origin "HEAD:${DEFAULT_BRANCH}"
