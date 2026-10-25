@@ -1,23 +1,23 @@
-# node-edge-tts
+# node-edge-tts-cn
 
-node-edge-tts is a module that utilizes Microsoft Edge's online TTS (Text-to-Speech) service on Node.js
+node-edge-tts-cn is a module that utilizes Microsoft Edge's online TTS (Text-to-Speech) service on Node.js
 
 
 ## Installation
 
 ```
-npm install node-edge-tts
+npm install node-edge-tts-cn
 ```
 
 #### Or you can directly use it in the command line.
 ```
-npx node-edge-tts -t 'Hello world'
+npx node-edge-tts-cn -t 'Hello world'
 ```
 
 
 ## Command line usage
 ```
-Usage: npx node-edge-tts [options]
+Usage: npx node-edge-tts-cn [options]
 
 Options:
       --help           Show help                                       [boolean]
@@ -37,18 +37,18 @@ Options:
       --timeout        The timeout of the request      [number] [default: 10000]
 
 Examples:
-  npx node-edge-tts -t 'Hello world' -f './output.mp3'
+  npx node-edge-tts-cn -t 'Hello world' -f './output.mp3'
 ```
 
 
 ## Module usage
 
 ```
-const { EdgeTTS } = require('node-edge-tts')
+const { EdgeTTS } = require('node-edge-tts-cn')
 ```
 or
 ```
-import { EdgeTTS } from 'node-edge-tts'
+import { EdgeTTS } from 'node-edge-tts-cn'
 ```
 
 ```

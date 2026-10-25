@@ -3,7 +3,7 @@ const { EdgeTTS } = require('./dist/edge-tts.js')
 const yargs = require('yargs/yargs')
 const { hideBin } = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv))
-  .usage('Usage: npx node-edge-tts [options]')
+  .usage('Usage: npx node-edge-tts-cn [options]')
   .options({
     text: { type: 'string', demandOption: true, alias: 't', describe: 'The text to be converted to speech' },
     filepath: { type: 'string', alias: 'f', describe: 'The output file path' },
@@ -28,7 +28,7 @@ const argv = yargs(hideBin(process.argv))
     saveSubtitles: false,
     timeout: 10000
   })
-  .example(`npx node-edge-tts -t 'Hello world' -f './output.mp3'`)
+  .example(`npx node-edge-tts-cn -t 'Hello world' -f './output.mp3'`)
   .argv
 
 const { text, filepath, voice, lang, outputFormat, pitch, rate, volume, saveSubtitles, proxy } = argv
